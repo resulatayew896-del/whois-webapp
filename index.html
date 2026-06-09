@@ -1,140 +1,119 @@
 <!DOCTYPE html>
-<html lang="tk">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whois IP / Cloudflare</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Whois IP Bot</title>
     <style>
         body {
-            background-color: #17212b; /* Telegram Dark Mode reňki */
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #111827;
+            color: #f3f4f6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
             padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
         .header {
-            width: 100%;
-            max-width: 400px;
-            text-align: left;
-            margin-bottom: 15px;
             font-size: 18px;
             font-weight: bold;
-            color: #5288c1;
+            margin-bottom: 20px;
+            padding-left: 4px;
+        }
+        .card-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
         .card {
-            width: 100%;
-            max-width: 400px;
-            background-color: #242f3d; /* Sag tarapdaky ýaly guty reňki */
+            background-color: #1f2937;
             border-radius: 12px;
             padding: 16px;
-            margin-bottom: 12px;
-            box-sizing: border-box;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         .card-title {
+            color: #9ca3af;
             font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #7e9bb9;
+            letter-spacing: 0.5px;
             margin-bottom: 6px;
         }
         .card-value {
-            font-size: 20px;
-            font-weight: bold;
             color: #ffffff;
-            word-break: break-all;
+            font-size: 16px;
+            font-weight: 600;
         }
         .card-sub {
-            font-size: 13px;
-            color: #8fa6be;
+            color: #6b7280;
+            font-size: 12px;
             margin-top: 4px;
         }
-        #loading {
-            margin-top: 50px;
-            font-size: 16px;
-            color: #7e9bb9;
+        .ua-box {
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #9ca3af;
         }
     </style>
 </head>
 <body>
 
-    <div class="header" id="nav-title" style="display:none;">IP Bilgileriniz</div>
-    <div id="loading">Maglumatlar alynýar...</div>
-    <div id="app-content" style="width:100%; max-width:400px; display:none;"></div>
+    <div class="header">IP Bilgileriniz</div>
 
-<script>
-    const tg = window.Telegram.WebApp;
-    tg.expand(); // Ekran doly açylýar
+    <div class="card-container">
+        <div class="card">
+            <div class="card-title">IP ADRESİ</div>
+            <div class="card-value" id="ip">Yükleniyor...</div>
+            <div class="card-sub" id="isp">-</div>
+        </div>
 
-    // Çig tekstden maglumatlary aýratynlyklara öwürmek funksiýasy
-    function parseCloudflareTrace(text) {
-        const lines = text.split('\n');
-        const result = {};
-        lines.forEach(line => {
-            const parts = line.split('=');
-            if (parts.length === 2) {
-                result[parts[0].trim()] = parts[1].trim();
-            }
-        });
-        return result;
-    }
+        <div class="card">
+            <div class="card-title">ÜLKE</div>
+            <div class="card-value" id="country">-</div>
+        </div>
 
-    // Cloudflare-den maglumat çekýäris
-    fetch('https://www.cloudflare.com/cdn-cgi/trace')
-        .then(res => res.text())
-        .then(textData => {
-            const data = parseCloudflareTrace(textData);
-            
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('nav-title').style.display = 'block';
-            
-            const container = document.getElementById('app-content');
-            container.style.display = 'block';
+        <div class="card">
+            <div class="card-title">ŞEHİR</div>
+            <div class="card-value" id="city">-</div>
+        </div>
 
-            // 1. IP Adresi Karty
-            container.innerHTML += `
-                <div class="card">
-                    <div class="card-title">IP ADRESI</div>
-                    <div class="card-value">${data.ip || 'Tapylmady'}</div>
-                    <div class="card-sub">Cloudflare Network üsti bilen</div>
-                </div>
-            `;
+        <div class="card">
+            <div class="card-title">CİHAZ</div>
+            <div class="card-value" id="device">-</div>
+        </div>
 
-            // 2. Ýurt we Lokasiýa Karty
-            container.innerHTML += `
-                <div class="card">
-                    <div class="card-title">ÜLKE (ÝURT)</div>
-                    <div class="card-value">📍 ${data.loc || 'Neznälim'}</div>
-                    <div class="card-sub">Registrar tarapyndan kesgitlenen</div>
-                </div>
-            `;
+        <div class="card">
+            <div class="card-title">İŞLETİM SİSTEMİ</div>
+            <div class="card-value" id="os">-</div>
+        </div>
 
-            // 3. Cloudflare Datacenter (Colo) Karty
-            container.innerHTML += `
-                <div class="card">
-                    <div class="card-title">CLOUDFLARE EDGE (COLO)</div>
-                    <div class="card-value">⚡ ${data.colo || 'Müşderi'}</div>
-                    <div class="card-sub">Iň ýakyn serwer merkezi</div>
-                </div>
-            `;
+        <div class="card">
+            <div class="card-title">TARAYICI</div>
+            <div class="card-value" id="browser">-</div>
+        </div>
 
-            // 4. HTTP we TLS Gurluşy
-            container.innerHTML += `
-                <div class="card">
-                    <div class="card-title">PROTOKOL WE HOWPSUZLYK</div>
-                    <div class="card-value">${data.http || 'HTTP'} / ${data.tls || 'TLS'}</div>
-                    <div class="card-sub">Ulanylýan baglanyşyk görnüşi</div>
-                </div>
-            `;
-        })
-        .catch(err => {
-            document.getElementById('loading').innerText = "Maglumatlary alyp bolmady!";
-        });
-</script>
+        <div class="card">
+            <div class="card-title">USER-AGENT</div>
+            <div class="card-value ua-box" id="user_agent">-</div>
+        </div>
+    </div>
 
+    <script>
+        // API-dan hakyky we doly maglumatlary çekýäris
+        fetch('/api/ip-bilgileri')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('ip').innerText = data.ip;
+                document.getElementById('isp').innerText = data.isp + " tarafından";
+                document.getElementById('country').innerText = data.country;
+                document.getElementById('city').innerText = data.city;
+                document.getElementById('device').innerText = data.device;
+                document.getElementById('os').innerText = data.os;
+                document.getElementById('browser').innerText = data.browser;
+                document.getElementById('user_agent').innerText = data.user_agent;
+            })
+            .catch(err => {
+                console.error("Hata:", err);
+                document.getElementById('ip').innerText = "Bağlantı hatası";
+            });
+    </script>
 </body>
 </html>
