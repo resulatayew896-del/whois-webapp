@@ -54,21 +54,45 @@
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
         }
-        
-        // Ýaňy Serveo-dan alan hakyky salgyňyz (Muny üýtgetmäň, şu durşuna galsyn)
-        fetch('https://7047eb91af0ed8de-45-157-233-71.serveousercontent.com/api/ip-bilgileri')
+
+        // Göni internet API-den maglumaty çekmek (Tünelsiz professional ýol)
+        fetch('https://ipapi.co/json/')
             .then(res => res.json())
             .then(data => {
-                document.getElementById('ip').innerText = data.ip;
-                document.getElementById('isp').innerText = data.isp + " tarafından";
-                document.getElementById('country').innerText = data.country;
-                document.getElementById('city').innerText = data.city;
-                document.getElementById('device').innerText = data.device;
-                document.getElementById('os').innerText = data.os;
-                document.getElementById('browser').innerText = data.browser;
-                document.getElementById('user_agent').innerText = data.user_agent;
+                document.getElementById('ip').innerText = data.ip || "-";
+                document.getElementById('isp').innerText = data.org || "Bilinmiyor";
+                document.getElementById('country').innerText = data.country_name || "-";
+                document.getElementById('city').innerText = data.city || "-";
+                
+                // User Agent maglumatlaryny brauzeriň özünden okamak
+                const uaStr = navigator.userAgent;
+                document.getElementById('user_agent').innerText = uaStr;
+
+                // OS we Tarayıcı tapmak
+                let os = "Bilinmeyen OS";
+                if (uaStr.indexOf("Android") !== -1) os = "Android";
+                else if (uaStr.indexOf("iPhone") !== -1) os = "iOS";
+                else if (uaStr.indexOf("Windows") !== -1) os = "Windows";
+                document.getElementById('os').innerText = os;
+
+                let browser = "Bilinmeyen Tarayıcı";
+                if (uaStr.indexOf("Chrome") !== -1) browser = "Chrome";
+                else if (uaStr.indexOf("Firefox") !== -1) browser = "Firefox";
+                else if (uaStr.indexOf("Safari") !== -1) browser = "Safari";
+                document.getElementById('browser').innerText = browser;
+
+                // Cihaz tapmak
+                let device = "Mobil Cihaz";
+                if (uaStr.indexOf("Samsung") !== -1 || uaStr.indexOf("SM-") !== -1) {
+                    device = "Samsung Device";
+                } else if (uaStr.indexOf("iPhone") !== -1) {
+                    device = "iPhone";
+                }
+                document.getElementById('device').innerText = device;
             })
-            .catch(() => { document.getElementById('ip').innerText = "Bağlantı hatası"; });
+            .catch(() => { 
+                document.getElementById('ip').innerText = "Bağlantı hatası"; 
+            });
     </script>
 </body>
 </html>
