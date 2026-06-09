@@ -54,10 +54,9 @@
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
         }
-
-        // ⚠️ ÜNS BERIŇ: Aşakdaky 'bota-goşan-hakyky-domeniňiz.com' diýen ýere
-        // Nginx ýa-da Cloudflare Tunnel arkaly ulanýan hakyky web salgyňyzy ýazyň!
-        fetch('https://bota-goşan-hakyky-domeniňiz.com/api/ip-bilgileri')
+        
+        // Ýaňy Serveo-dan alan hakyky salgyňyz (Muny üýtgetmäň, şu durşuna galsyn)
+        fetch('https://7047eb91af0ed8de-45-157-233-71.serveousercontent.com/api/ip-bilgileri')
             .then(res => res.json())
             .then(data => {
                 document.getElementById('ip').innerText = data.ip;
