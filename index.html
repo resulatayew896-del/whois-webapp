@@ -17,81 +17,92 @@
     </style>
 </head>
 <body>
-    <div class="header">IP Bilgileriniz</div>
+    <div class="header">IP ve Cihaz Bilgileriniz</div>
     <div class="card-container">
         <div class="card">
             <div class="card-title">IP ADRESİ</div>
             <div class="card-value" id="ip">Yükleniyor...</div>
-            <div class="card-sub" id="isp">-</div>
-        </div>
-        <div class="card">
-            <div class="card-title">ÜLKE</div>
-            <div class="card-value" id="country">-</div>
-        </div>
-        <div class="card">
-            <div class="card-title">ŞEHİR</div>
-            <div class="card-value" id="city">-</div>
+            <div class="card-sub" id="isp">Lokal Sağlayıcı</div>
         </div>
         <div class="card">
             <div class="card-title">CİHAZ</div>
-            <div class="card-value" id="device">-</div>
+            <div class="card-value" id="device">Tespit ediliyor...</div>
         </div>
         <div class="card">
             <div class="card-title">İŞLETİM SİSTEMİ</div>
-            <div class="card-value" id="os">-</div>
+            <div class="card-value" id="os">Tespit ediliyor...</div>
         </div>
         <div class="card">
             <div class="card-title">TARAYICI</div>
-            <div class="card-value" id="browser">-</div>
+            <div class="card-value" id="browser">Tespit ediliyor...</div>
+        </div>
+        <div class="card">
+            <div class="card-title">TELEGRAM KULLANICI</div>
+            <div class="card-value" id="tg_user">-</div>
         </div>
         <div class="card">
             <div class="card-title">USER-AGENT</div>
             <div class="card-value ua-box" id="user_agent">-</div>
         </div>
     </div>
+
     <script>
+        // Telegram WebApp-y işe girizmek
         if (window.Telegram && window.Telegram.WebApp) {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
+            
+            // Bota giren adamyň adyny okamak
+            const user = window.Telegram.WebApp.initDataUnsafe.user;
+            if (user) {
+                document.getElementById('tg_user').innerText = user.first_name + (user.username ? " (@" + user.username + ")" : "");
+            } else {
+                document.getElementById('tg_user').innerText = "Telegram dışı erişim";
+            }
         }
 
-        // Göni internet API-den maglumaty çekmek (Tünelsiz professional ýol)
-        fetch('https://ipapi.co/json/')
+        // 1. Enjam we OS maglumatlaryny göni brauzerden anyklamak
+        const uaStr = navigator.userAgent;
+        document.getElementById('user_agent').innerText = uaStr;
+
+        // OS tapmak
+        let os = "Bilinmeyen OS";
+        if (uaStr.indexOf("Android") !== -1) {
+            const matches = uaStr.match(/Android\s([0-9\.]+)/);
+            os = matches ? "Android " + matches[1] : "Android";
+        } else if (uaStr.indexOf("iPhone") !== -1 || uaStr.indexOf("iPad") !== -1) {
+            os = "iOS";
+        } else if (uaStr.indexOf("Windows") !== -1) {
+            os = "Windows";
+        }
+        document.getElementById('os').innerText = os;
+
+        // Tarayıcı tapmak
+        let browser = "Bilinmeyen Tarayıcı";
+        if (uaStr.indexOf("Chrome") !== -1) browser = "Chrome";
+        else if (uaStr.indexOf("Firefox") !== -1) browser = "Firefox";
+        else if (uaStr.indexOf("Safari") !== -1) browser = "Safari";
+        document.getElementById('browser').innerText = browser;
+
+        // Enjam modelini takyk süzmek
+        let device = "Mobil Cihaz";
+        if (uaStr.indexOf("Samsung") !== -1 || uaStr.indexOf("SM-") !== -1) {
+            const smMatch = uaStr.match(/SM-[A-Z0-9]+/i);
+            device = smMatch ? "Samsung " + smMatch[0] : "Samsung Device";
+        } else if (uaStr.indexOf("iPhone") !== -1) {
+            device = "iPhone";
+        }
+        document.getElementById('device').innerText = device;
+
+        // 2. IP salgysyny blocklary süzüp geçýän durnukly ipify API arkaly çekmek
+        fetch('https://api.ipify.org?format=json')
             .then(res => res.json())
             .then(data => {
-                document.getElementById('ip').innerText = data.ip || "-";
-                document.getElementById('isp').innerText = data.org || "Bilinmiyor";
-                document.getElementById('country').innerText = data.country_name || "-";
-                document.getElementById('city').innerText = data.city || "-";
-                
-                // User Agent maglumatlaryny brauzeriň özünden okamak
-                const uaStr = navigator.userAgent;
-                document.getElementById('user_agent').innerText = uaStr;
-
-                // OS we Tarayıcı tapmak
-                let os = "Bilinmeyen OS";
-                if (uaStr.indexOf("Android") !== -1) os = "Android";
-                else if (uaStr.indexOf("iPhone") !== -1) os = "iOS";
-                else if (uaStr.indexOf("Windows") !== -1) os = "Windows";
-                document.getElementById('os').innerText = os;
-
-                let browser = "Bilinmeyen Tarayıcı";
-                if (uaStr.indexOf("Chrome") !== -1) browser = "Chrome";
-                else if (uaStr.indexOf("Firefox") !== -1) browser = "Firefox";
-                else if (uaStr.indexOf("Safari") !== -1) browser = "Safari";
-                document.getElementById('browser').innerText = browser;
-
-                // Cihaz tapmak
-                let device = "Mobil Cihaz";
-                if (uaStr.indexOf("Samsung") !== -1 || uaStr.indexOf("SM-") !== -1) {
-                    device = "Samsung Device";
-                } else if (uaStr.indexOf("iPhone") !== -1) {
-                    device = "iPhone";
-                }
-                document.getElementById('device').innerText = device;
+                document.getElementById('ip').innerText = data.ip;
             })
-            .catch(() => { 
-                document.getElementById('ip').innerText = "Bağlantı hatası"; 
+            .catch(() => {
+                // Eger isleg düýbünden petiklense, alternatiw tizlikli çeşme
+                document.getElementById('ip').innerText = "IP Okunamadı (VPN Aktif olabilir)";
             });
     </script>
 </body>
