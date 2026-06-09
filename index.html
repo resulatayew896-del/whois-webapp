@@ -1,9 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Whois IP Bot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             background-color: #111827;
@@ -71,11 +73,6 @@
         </div>
 
         <div class="card">
-            <div class="card-title">ŞEHİR</div>
-            <div class="card-value" id="city">-</div>
-        </div>
-
-        <div class="card">
             <div class="card-title">CİHAZ</div>
             <div class="card-value" id="device">-</div>
         </div>
@@ -97,14 +94,19 @@
     </div>
 
     <script>
-        // API-dan hakyky we doly maglumatlary çekýäris
+        // Telegram WebApp-y işe girizýäris
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand(); // Ekranı doly açar
+        }
+
+        // Öz proxy/serweriňizden hakyky dynamic maglumatlary çekýäris
         fetch('/api/ip-bilgileri')
             .then(response => response.json())
             .then(data => {
                 document.getElementById('ip').innerText = data.ip;
                 document.getElementById('isp').innerText = data.isp + " tarafından";
                 document.getElementById('country').innerText = data.country;
-                document.getElementById('city').innerText = data.city;
                 document.getElementById('device').innerText = data.device;
                 document.getElementById('os').innerText = data.os;
                 document.getElementById('browser').innerText = data.browser;
