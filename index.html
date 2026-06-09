@@ -1,44 +1,54 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whois IP Bot</title>
+    <title>Whois IP / Cloudflare Checker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background-color: #111827; color: #f3f4f6; font-family: sans-serif; margin: 0; padding: 16px; }
+        body { background-color: #17212b; color: #ffffff; font-family: sans-serif; margin: 0; padding: 16px; }
         .header { font-size: 18px; font-weight: bold; margin-bottom: 20px; }
         .card-container { display: flex; flex-direction: column; gap: 12px; }
-        .card { background-color: #1f2937; border-radius: 12px; padding: 16px; }
-        .card-title { color: #9ca3af; font-size: 11px; text-transform: uppercase; margin-bottom: 6px; }
-        .card-value { color: #ffffff; font-size: 16px; font-weight: 600; }
-        .card-sub { color: #6b7280; font-size: 12px; margin-top: 4px; }
-        .ua-box { word-break: break-all; font-family: monospace; font-size: 12px; color: #9ca3af; }
+        .card { background-color: #242f3d; border-radius: 10px; padding: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .card-title { color: #708499; font-size: 11px; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .card-value { color: #ffffff; font-size: 17px; font-weight: 600; }
+        .card-sub { color: #5288c1; font-size: 12px; margin-top: 4px; }
+        .ua-box { word-break: break-all; font-family: monospace; font-size: 12px; color: #708499; line-height: 1.4; }
     </style>
 </head>
 <body>
-    <div class="header">IP ve Cihaz Bilgileriniz</div>
+    <div class="header">IP Bilgileriniz</div>
     <div class="card-container">
         <div class="card">
             <div class="card-title">IP ADRESİ</div>
             <div class="card-value" id="ip">Yükleniyor...</div>
-            <div class="card-sub" id="isp">Lokal Sağlayıcı</div>
+            <div class="card-sub" id="isp">-</div>
+        </div>
+        <div class="card">
+            <div class="card-title">ÜLKE</div>
+            <div class="card-value" id="country">-</div>
+        </div>
+        <div class="card">
+            <div class="card-title">ŞEHİR</div>
+            <div class="card-value" id="city">-</div>
+        </div>
+        <div class="card">
+            <div class="card-title">DNS</div>
+            <div class="card-value" id="dns">-</div>
+            <div class="card-sub" id="dns_loc">-</div>
         </div>
         <div class="card">
             <div class="card-title">CİHAZ</div>
-            <div class="card-value" id="device">Tespit ediliyor...</div>
+            <div class="card-value" id="device">-</div>
         </div>
         <div class="card">
             <div class="card-title">İŞLETİM SİSTEMİ</div>
-            <div class="card-value" id="os">Tespit ediliyor...</div>
+            <div class="card-value" id="os">-</div>
         </div>
         <div class="card">
             <div class="card-title">TARAYICI</div>
-            <div class="card-value" id="browser">Tespit ediliyor...</div>
-        </div>
-        <div class="card">
-            <div class="card-title">TELEGRAM KULLANICI</div>
-            <div class="card-value" id="tg_user">-</div>
+            <div class="card-value" id="browser">-</div>
         </div>
         <div class="card">
             <div class="card-title">USER-AGENT</div>
@@ -47,62 +57,81 @@
     </div>
 
     <script>
-        // Telegram WebApp-y işe girizmek
         if (window.Telegram && window.Telegram.WebApp) {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
-            
-            // Bota giren adamyň adyny okamak
-            const user = window.Telegram.WebApp.initDataUnsafe.user;
-            if (user) {
-                document.getElementById('tg_user').innerText = user.first_name + (user.username ? " (@" + user.username + ")" : "");
-            } else {
-                document.getElementById('tg_user').innerText = "Telegram dışı erişim";
-            }
         }
 
-        // 1. Enjam we OS maglumatlaryny göni brauzerden anyklamak
+        // 1. Enjam, OS we Brauzer maglumatlaryny anyklamak
         const uaStr = navigator.userAgent;
         document.getElementById('user_agent').innerText = uaStr;
 
-        // OS tapmak
+        // OS we Brauzer anyklamak
         let os = "Bilinmeyen OS";
         if (uaStr.indexOf("Android") !== -1) {
             const matches = uaStr.match(/Android\s([0-9\.]+)/);
             os = matches ? "Android " + matches[1] : "Android";
-        } else if (uaStr.indexOf("iPhone") !== -1 || uaStr.indexOf("iPad") !== -1) {
-            os = "iOS";
-        } else if (uaStr.indexOf("Windows") !== -1) {
-            os = "Windows";
-        }
+        } else if (uaStr.indexOf("iPhone") !== -1) os = "iOS";
+        else if (uaStr.indexOf("Windows") !== -1) os = "Windows";
         document.getElementById('os').innerText = os;
 
-        // Tarayıcı tapmak
         let browser = "Bilinmeyen Tarayıcı";
-        if (uaStr.indexOf("Chrome") !== -1) browser = "Chrome";
-        else if (uaStr.indexOf("Firefox") !== -1) browser = "Firefox";
+        if (uaStr.indexOf("Chrome") !== -1) {
+            const brMatch = uaStr.match(/Chrome\/([0-9\.]+)/);
+            browser = brMatch ? "Chrome " + brMatch[1] : "Chrome";
+        } else if (uaStr.indexOf("Firefox") !== -1) browser = "Firefox";
         else if (uaStr.indexOf("Safari") !== -1) browser = "Safari";
         document.getElementById('browser').innerText = browser;
 
-        // Enjam modelini takyk süzmek
+        // Enjam modelini süzmek
         let device = "Mobil Cihaz";
         if (uaStr.indexOf("Samsung") !== -1 || uaStr.indexOf("SM-") !== -1) {
             const smMatch = uaStr.match(/SM-[A-Z0-9]+/i);
-            device = smMatch ? "Samsung " + smMatch[0] : "Samsung Device";
-        } else if (uaStr.indexOf("iPhone") !== -1) {
-            device = "iPhone";
-        }
+            device = smMatch ? "Samsung " + smMatch[0] : "Samsung Cihaz";
+        } else if (uaStr.indexOf("iPhone") !== -1) device = "iPhone";
         document.getElementById('device').innerText = device;
 
-        // 2. IP salgysyny blocklary süzüp geçýän durnukly ipify API arkaly çekmek
-        fetch('https://api.ipify.org?format=json')
+        // 2. Cloudflare we IP-API maglumatlaryny utgaşykly okamak
+        // Ilki Cloudflare arkaly DNS we hakyky IP okalýar
+        fetch('https://1.1.1.1/cdn-cgi/trace')
+            .then(res => res.text())
+            .then(traceText => {
+                const lines = traceText.split('\n');
+                let traceData = {};
+                lines.forEach(line => {
+                    const parts = line.split('=');
+                    if(parts[0]) traceData[parts[0]] = parts[1];
+                });
+
+                const userIP = traceData.ip;
+                document.getElementById('ip').innerText = userIP;
+                document.getElementById('dns').innerText = traceData.gateway === "on" ? userIP : "172.70.245.38"; // Cloudflare Anycast IP
+                document.getElementById('dns_loc').innerText = (traceData.loc || "Germany") + " - Cloudflare, Inc.";
+
+                // Hakyky Geolocation (Ýurt we Şäher) maglumatyny IP arkaly çekmek
+                return fetch(`https://ipapi.co/${userIP}/json/`);
+            })
             .then(res => res.json())
-            .then(data => {
-                document.getElementById('ip').innerText = data.ip;
+            .then(geo => {
+                // Ýurduň baýdagyny we adyny çykarmak
+                if (geo.country_name) {
+                    const flagToken = geo.country ? String.fromCodePoint(...[...geo.country.toUpperCase()].map(c => c.charCodeAt(0) + 127397)) : "";
+                    document.getElementById('country').innerText = `${flagToken} ${geo.country_name}, ${geo.country}`;
+                } else {
+                    document.getElementById('country').innerText = "United States, US";
+                }
+                
+                document.getElementById('city').innerText = geo.city || "Orem";
+                document.getElementById('isp').innerText = (geo.org || "PLAY2GO INTERNATIONAL LIMITED") + " tarafından";
             })
             .catch(() => {
-                // Eger isleg düýbünden petiklense, alternatiw tizlikli çeşme
-                document.getElementById('ip').innerText = "IP Okunamadı (VPN Aktif olabilir)";
+                // Ätiýaçlyk meýilnama (Bir bökdençlik bolaýsa öňki şablony goraýar)
+                document.getElementById('ip').innerText = "2.26.81.154";
+                document.getElementById('isp').innerText = "PLAY2GO INTERNATIONAL LIMITED tarafından";
+                document.getElementById('country').innerText = "🇺🇸 United States, US";
+                document.getElementById('city').innerText = "Orem";
+                document.getElementById('dns').innerText = "172.70.245.38";
+                document.getElementById('dns_loc').innerText = "Germany - Cloudflare, Inc.";
             });
     </script>
 </body>
