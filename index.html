@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="tk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whois IP / Cloudflare Checker</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { background-color: #17212b; color: #ffffff; font-family: sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 400px; background: #242f3d; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        h2 { text-align: center; color: #5288c1; }
+        .info-box { background: #182533; padding: 12px; margin: 10px 0; border-radius: 6px; font-family: monospace; white-space: pre-wrap; word-break: break-all; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>MyIP & Cloudflare Edge</h2>
+    <div id="loading">Maglumatlar alynýar...</div>
+    <div id="result" class="info-box" style="display:none;"></div>
+</div>
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    fetch('https://www.cloudflare.com/cdn-cgi/trace')
+        .then(res => res.text())
+        .then(data => {
+            document.getElementById('loading').style.display = 'none';
+            const resultBox = document.getElementById('result');
+            resultBox.style.display = 'block';
+            resultBox.innerText = data;
+        })
+        .catch(err => { document.getElementById('loading').innerText = "Ýalňyşlyk ýüz berdi!"; });
+</script>
+</body>
+</html>
